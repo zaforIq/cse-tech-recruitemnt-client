@@ -1,14 +1,8 @@
 
 export async function getCandidates() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  
-  if (!apiUrl) {
-    console.error('API URL is not defined');
-    return [];
-  }
-
+  // calls the built-in API route
   try {
-    const response = await fetch(`${apiUrl}/candidates`, {
+    const response = await fetch(`/api/candidates`, {
       cache: 'no-store', // Ensure fresh data
     });
 
@@ -25,15 +19,8 @@ export async function getCandidates() {
 }
 
 export async function getCandidateById(id) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  
-  if (!apiUrl) {
-    console.error('API URL is not defined');
-    return null;
-  }
-
   try {
-    const response = await fetch(`${apiUrl}/candidates/${id}`, {
+    const response = await fetch(`/api/candidates/${id}`, {
       cache: 'no-store',
     });
 
