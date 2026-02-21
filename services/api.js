@@ -37,20 +37,56 @@ export async function getCandidateById(id) {
   }
 }
 
-export async function verifyAccess(id) {
+export async function verifyAccess(email, password) {
   try {
     const response = await fetch(`/api/auth/verify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ email, password }),
     });
 
     const data = await response.json();
     return data;
   } catch (error) {
     console.error('Error verifying access:', error);
+    return { success: false, message: 'Server error connection failed' };
+  }
+}
+
+export async function verifyCandidateIdentity(studentId, email) {
+  try {
+    const response = await fetch(`/api/auth/verify-candidate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ studentId, email }),
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error verifying candidate:', error);
+    return { success: false, message: 'Server error connection failed' };
+  }
+}
+
+export async function setCandidatePassword(studentId, email, newPassword) {
+  try {
+    const response = await fetch(`/api/auth/set-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ studentId, email, newPassword }),
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error setting password:', error);
     return { success: false, message: 'Server error connection failed' };
   }
 }
