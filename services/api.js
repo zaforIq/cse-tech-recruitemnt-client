@@ -54,3 +54,25 @@ export async function verifyAccess(id) {
     return { success: false, message: 'Server error connection failed' };
   }
 }
+
+export async function updateCandidateAssessment(id, data) {
+  try {
+    const response = await fetch(`/api/candidates/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update assessment');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(`Error updating candidate assessment for ${id}:`, error);
+    throw error;
+  }
+}

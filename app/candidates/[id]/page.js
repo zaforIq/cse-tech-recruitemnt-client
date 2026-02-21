@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getCandidateById } from '../../../services/api';
+import { getCandidateById, updateCandidateAssessment } from '../../../services/api';
 import { use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -11,21 +11,28 @@ export default function CandidateDetailsPage({ params }) {
   const { id } = use(params);
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [auth, setAuth] = useState(null);
+  const [assessmentQuestionUrl, setAssessmentQuestionUrl] = useState('');
+  const [assessmentData, setAssessmentData] = useState({
+    assessmentGithub: '',
+    assessmentDoc1: '',
+    assessmentDoc2: ''
+  });
+  const [message, setMessage] = useState({ type: '', text: '' });
   const router = useRouter();
 
   useEffect(() => {
-    const auth = JSON.parse(localStorage.getItem('auth') || 'null');
+    const authData = JSON.parse(localStorage.getItem('auth') || 'null');
+    setAuth(authData);
     
-    // Auth Check:
-    // 1. Must be logged in
-    // 2. If candidate, must match the ID in params
-    if (!auth) {
+    if (!authData) {
       router.push('/');
       return;
     }
 
-    if (auth.role === 'candidate' && auth.id !== id) {
-      router.push('/'); // Or show unauthorized message
+    if (authData.role === 'candidate' && authData.id !== id) {
+      router.push('/');
       return;
     }
 
@@ -33,6 +40,14 @@ export default function CandidateDetailsPage({ params }) {
       if (id) {
         const data = await getCandidateById(id);
         setCandidate(data);
+        if (data) {
+          setAssessmentQuestionUrl(data.assessmentQuestionUrl || '');
+          setAssessmentData({
+            assessmentGithub: data.assessmentGithub || '',
+            assessmentDoc1: data.assessmentDoc1 || '',
+            assessmentDoc2: data.assessmentDoc2 || ''
+          });
+        }
         setLoading(false);
       }
     }
@@ -156,6 +171,220 @@ export default function CandidateDetailsPage({ params }) {
                  </dd>
               </div>
             </dl>
+          </div>
+        </div>
+
+        {/* Recruitment Assessment Section */}
+        <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-lg border-2 border-indigo-100">
+          <div className="px-4 py-5 sm:px-6 bg-indigo-50 border-b border-indigo-100">
+            <h3 className="text-lg leading-6 font-bold text-gray-900">Recruitment Assessment</h3>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+              {auth?.role === 'admin' ? "Manage this candidate's assessment." : "Submit your technical assessment solution."}
+            </p>
+          </div>
+          
+          <div className="px-4 py-6 sm:px-6 space-y-8">
+            {/* Admin Section: Question Assignment */}
+            {auth?.role === 'admin' && (
+              <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Assessment Question Setup</h4>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-grow">
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Assessment Link (Drive/Doc)</label>
+                    <input 
+                      type="url"
+                      placeholder="https://drive.google.com/..."
+                      className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                      value={assessmentQuestionUrl}
+                      onChange={(e) => setAssessmentQuestionUrl(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <button 
+                      onClick={async () => {
+                        setSubmitting(true);
+                        setMessage({ type: '', text: '' });
+                        try {
+                          await updateCandidateAssessment(id, { assessmentQuestionUrl });
+                          setMessage({ type: 'success', text: 'Assessment question assigned successfully!' });
+                        } catch (err) {
+                          setMessage({ type: 'error', text: err.message });
+                        } finally {
+                          setSubmitting(false);
+                        }
+                      }}
+                      disabled={submitting}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      {submitting ? 'Saving...' : 'Assign URL'}
+                    </button>
+                  </div>
+                </div>
+                <p className="mt-2 text-xs text-slate-400 italic">This link will be visible to the candidate when they log in.</p>
+              </div>
+            )}
+
+            {/* Candidate Section: Download Question */}
+            {auth?.role === 'candidate' && (
+              <div className="text-center p-8 bg-indigo-50/50 rounded-2xl border border-dashed border-indigo-200">
+                {candidate.assessmentQuestionUrl ? (
+                  <>
+                    <div className="inline-flex items-center justify-center p-3 bg-indigo-100 rounded-full mb-4">
+                      <svg className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-lg font-bold text-gray-900 mb-2">Technical Assessment Question</h4>
+                    <p className="text-sm text-gray-600 mb-6 max-w-sm mx-auto">Please download the questions using the button below and follow the instructions carefully.</p>
+                    <a 
+                      href={candidate.assessmentQuestionUrl}
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="inline-flex items-center px-6 py-3 border border-transparent text-base font-semibold rounded-xl shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-all transform hover:scale-105"
+                    >
+                      <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Get Assessment Questions
+                    </a>
+                  </>
+                ) : (
+                  <div className="py-4">
+                    <div className="inline-flex items-center justify-center p-3 bg-amber-100 rounded-full mb-4">
+                      <svg className="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-lg font-bold text-gray-900 mb-2">Awaiting Assessment</h4>
+                    <p className="text-sm text-gray-600">The recruitment team has not assigned your assessment question yet. Please check back later.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center">
+                <span className="px-3 bg-white text-sm font-semibold text-gray-500 uppercase tracking-widest">
+                  {auth?.role === 'admin' ? 'Received Solutions' : 'Submit Solution'}
+                </span>
+              </div>
+            </div>
+
+            {auth?.role === 'admin' ? (
+              <div className="space-y-4">
+                <p className="text-sm font-medium text-gray-500 mb-2">Submitted Links (Read-only)</p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <span className="block text-xs font-semibold text-gray-500 uppercase mb-1">GitHub Repository</span>
+                    {candidate.assessmentGithub ? (
+                      <a href={candidate.assessmentGithub} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline break-all">
+                        {candidate.assessmentGithub}
+                      </a>
+                    ) : <span className="text-gray-400">Not submitted</span>}
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <span className="block text-xs font-semibold text-gray-500 uppercase mb-1">Assessment Document 1</span>
+                    {candidate.assessmentDoc1 ? (
+                      <a href={candidate.assessmentDoc1} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline break-all">
+                        {candidate.assessmentDoc1}
+                      </a>
+                    ) : <span className="text-gray-400">Not submitted</span>}
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <span className="block text-xs font-semibold text-gray-500 uppercase mb-1">Assessment Document 2</span>
+                    {candidate.assessmentDoc2 ? (
+                      <a href={candidate.assessmentDoc2} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline break-all">
+                        {candidate.assessmentDoc2}
+                      </a>
+                    ) : <span className="text-gray-400">Not submitted</span>}
+                  </div>
+                   <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <span className="block text-xs font-semibold text-gray-500 uppercase mb-1">Submission Time</span>
+                    {candidate.assessmentSubmittedAt ? (
+                      <span className="text-gray-700">
+                        {new Date(candidate.assessmentSubmittedAt).toLocaleString()}
+                      </span>
+                    ) : <span className="text-gray-400">N/A</span>}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                setSubmitting(true);
+                setMessage({ type: '', text: '' });
+                try {
+                  await updateCandidateAssessment(id, assessmentData);
+                  setMessage({ type: 'success', text: 'Assessment documents submitted successfully!' });
+                } catch (err) {
+                  setMessage({ type: 'error', text: err.message });
+                } finally {
+                  setSubmitting(false);
+                }
+              }} className="space-y-6">
+                <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">GitHub Link</label>
+                    <input 
+                      type="url"
+                      placeholder="https://github.com/username/repo"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                      value={assessmentData.assessmentGithub}
+                      onChange={(e) => setAssessmentData({...assessmentData, assessmentGithub: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Document Link 1 (Drive/PDF)</label>
+                    <input 
+                      type="url"
+                      placeholder="https://drive.google.com/..."
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                      value={assessmentData.assessmentDoc1}
+                      onChange={(e) => setAssessmentData({...assessmentData, assessmentDoc1: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Document Link 2 (Drive/PDF)</label>
+                    <input 
+                      type="url"
+                      placeholder="https://drive.google.com/..."
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                      value={assessmentData.assessmentDoc2}
+                      onChange={(e) => setAssessmentData({...assessmentData, assessmentDoc2: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                {message.text && (
+                  <div className={`p-4 rounded-lg flex items-center space-x-3 ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                    {message.type === 'success' ? (
+                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                    ) : (
+                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                    )}
+                    <span className="text-sm font-medium">{message.text}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-end">
+                  <button 
+                    type="submit"
+                    disabled={submitting}
+                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {submitting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2"></div>
+                        Submitting...
+                      </>
+                    ) : 'Submit Assessment'}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </div>
