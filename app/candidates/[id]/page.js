@@ -16,6 +16,7 @@ export default function CandidateDetailsPage({ params }) {
   const [assessmentQuestionUrl, setAssessmentQuestionUrl] = useState('');
   const [assessmentData, setAssessmentData] = useState({
     assessmentGithub: '',
+    assessmentLiveLink: '',
     assessmentDoc1: '',
     assessmentDoc2: ''
   });
@@ -44,6 +45,7 @@ export default function CandidateDetailsPage({ params }) {
           setAssessmentQuestionUrl(data.assessmentQuestionUrl || '');
           setAssessmentData({
             assessmentGithub: data.assessmentGithub || '',
+            assessmentLiveLink: data.assessmentLiveLink || '',
             assessmentDoc1: data.assessmentDoc1 || '',
             assessmentDoc2: data.assessmentDoc2 || ''
           });
@@ -286,6 +288,14 @@ export default function CandidateDetailsPage({ params }) {
                     ) : <span className="text-gray-400">Not submitted</span>}
                   </div>
                   <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <span className="block text-xs font-semibold text-gray-500 uppercase mb-1">Live Preview Link</span>
+                    {candidate.assessmentLiveLink ? (
+                      <a href={candidate.assessmentLiveLink} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline break-all">
+                        {candidate.assessmentLiveLink}
+                      </a>
+                    ) : <span className="text-gray-400">Not submitted</span>}
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <span className="block text-xs font-semibold text-gray-500 uppercase mb-1">Assessment Document 1</span>
                     {candidate.assessmentDoc1 ? (
                       <a href={candidate.assessmentDoc1} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline break-all">
@@ -334,6 +344,16 @@ export default function CandidateDetailsPage({ params }) {
                       className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
                       value={assessmentData.assessmentGithub}
                       onChange={(e) => setAssessmentData({...assessmentData, assessmentGithub: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Live Preview Link</label>
+                    <input 
+                      type="url"
+                      placeholder="https://your-live-site.com"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                      value={assessmentData.assessmentLiveLink}
+                      onChange={(e) => setAssessmentData({...assessmentData, assessmentLiveLink: e.target.value})}
                     />
                   </div>
                   <div>

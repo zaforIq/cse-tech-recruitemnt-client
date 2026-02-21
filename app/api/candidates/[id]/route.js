@@ -41,6 +41,7 @@ export async function PATCH(request, { params }) {
     const allowedFields = [
       'assessmentQuestionUrl',
       'assessmentGithub',
+      'assessmentLiveLink',
       'assessmentDoc1',
       'assessmentDoc2'
     ];
