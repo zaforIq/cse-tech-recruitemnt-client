@@ -36,3 +36,21 @@ export async function getCandidateById(id) {
     return null;
   }
 }
+
+export async function verifyAccess(id) {
+  try {
+    const response = await fetch(`/api/auth/verify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id }),
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error verifying access:', error);
+    return { success: false, message: 'Server error connection failed' };
+  }
+}

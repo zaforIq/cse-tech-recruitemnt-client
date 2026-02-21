@@ -4,14 +4,31 @@ import { useState, useEffect } from 'react';
 import { getCandidateById } from '../../../services/api';
 import { use } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function CandidateDetailsPage({ params }) {
   // Unwrap params using React.use()
   const { id } = use(params);
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
+    const auth = JSON.parse(localStorage.getItem('auth') || 'null');
+    
+    // Auth Check:
+    // 1. Must be logged in
+    // 2. If candidate, must match the ID in params
+    if (!auth) {
+      router.push('/');
+      return;
+    }
+
+    if (auth.role === 'candidate' && auth.id !== id) {
+      router.push('/'); // Or show unauthorized message
+      return;
+    }
+
     async function fetchData() {
       if (id) {
         const data = await getCandidateById(id);
@@ -45,13 +62,22 @@ export default function CandidateDetailsPage({ params }) {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
+        <div className="mb-8 flex justify-between items-center">
           <Link href="/candidates" className="text-gray-500 hover:text-gray-900 flex items-center">
             <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Back to Candidates
           </Link>
+          <button 
+            onClick={() => { localStorage.removeItem('auth'); router.push('/'); }}
+            className="inline-flex items-center px-4 py-2 border border-slate-200 text-sm font-medium rounded-lg text-slate-600 bg-white hover:bg-slate-50 transition-colors"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
+          </button>
         </div>
 
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">

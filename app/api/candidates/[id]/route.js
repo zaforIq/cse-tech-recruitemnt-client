@@ -1,9 +1,9 @@
-import { connectToDatabase } from '../../../../utils/mongodb';
+import { connectToDatabase } from '@/utils/mongodb';
 import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 
 export async function GET(request, { params }) {
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const { db } = await connectToDatabase();

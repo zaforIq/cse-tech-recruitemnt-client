@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getCandidates } from '../../services/api';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function CandidatesPage() {
   const [candidates, setCandidates] = useState([]);
@@ -12,8 +13,15 @@ export default function CandidatesPage() {
   const [selectedSkills, setSelectedSkills] = useState([]); // Array of selected skills
   const [availableSkills, setAvailableSkills] = useState([]); // All unique skills
   const [showSkillsDropdown, setShowSkillsDropdown] = useState(false); // Toggle for skills dropdown
+  const router = useRouter();
 
   useEffect(() => {
+    const auth = JSON.parse(localStorage.getItem('auth') || 'null');
+    if (!auth || auth.role !== 'admin') {
+      router.push('/');
+      return;
+    }
+
     async function fetchData() {
       const data = await getCandidates();
       setCandidates(data);
@@ -72,6 +80,17 @@ export default function CandidatesPage() {
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 Discover the top talent from our latest recruitment drive.
             </p>
+            <div className="mt-4">
+                <button 
+                  onClick={() => { localStorage.removeItem('auth'); router.push('/'); }}
+                  className="inline-flex items-center px-4 py-2 border border-slate-200 text-sm font-medium rounded-lg text-slate-600 bg-white hover:bg-slate-50 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Logout
+                </button>
+            </div>
         </div>
 
         {/* Filters Section */}
