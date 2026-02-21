@@ -140,9 +140,9 @@ export default function Page() {
                 <label htmlFor="password" className="block text-sm font-medium text-slate-300">
                   Password
                 </label>
-                <Link href="/forgot-password" className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors">
+                {/* <Link href="/forgot-password" className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors">
                   Forgot Password?
-                </Link>
+                </Link> */}
               </div>
               <input
                 id="password"
