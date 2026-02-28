@@ -202,8 +202,15 @@ export default function CandidatesPage() {
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center space-x-3">
                                 {/* Avatar Placeholder */}
-                                <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xl uppercase">
+                                <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xl uppercase relative">
                                     {candidate.name ? candidate.name.charAt(0) : '?'}
+                                    {(candidate.assessmentGithub || candidate.assessmentLiveLink || candidate.assessmentDoc1 || candidate.assessmentDoc2 || candidate.assessmentSubmittedAt) && (
+                                        <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5">
+                                            <svg className="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
@@ -212,9 +219,33 @@ export default function CandidatesPage() {
                                     <p className="text-sm text-gray-500 font-medium">ID: {candidate.studentId}</p>
                                 </div>
                             </div>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                                {candidate.section ? `Sec: ${candidate.section}` : 'N/A'}
-                            </span>
+                            <div className="flex flex-col items-end space-y-1">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                    {candidate.section ? `Sec: ${candidate.section}` : 'N/A'}
+                                </span>
+                                {candidate.assessmentQuestionUrl ? (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                                        <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                                        Assigned
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-600 border border-gray-200">
+                                        <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        Not Assigned
+                                    </span>
+                                )}
+                                {(candidate.assessmentGithub || candidate.assessmentLiveLink || candidate.assessmentDoc1 || candidate.assessmentDoc2 || candidate.assessmentSubmittedAt) ? (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                                        <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                        Submitted
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                                        <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        Pending
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         <div className="space-y-3 mb-4">
