@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { getCandidateById, updateCandidateAssessment } from '../../../services/api';
 import { use } from 'react';
 import Link from 'next/link';
+import AssessmentClosedBanner from '../../../components/AssessmentClosedBanner';
 import { useRouter } from 'next/navigation';
 
 export default function CandidateDetailsPage({ params }) {
@@ -264,16 +265,18 @@ export default function CandidateDetailsPage({ params }) {
               </div>
             )}
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center">
-                <span className="px-3 bg-white text-sm font-semibold text-gray-500 uppercase tracking-widest">
-                  {auth?.role === 'admin' ? 'Received Solutions' : 'Submit Solution'}
-                </span>
-              </div>
-            </div>
+            {(auth?.role === 'admin' || candidate.assessmentQuestionUrl) && (
+              <>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                    <div className="w-full border-t border-gray-200"></div>
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="px-3 bg-white text-sm font-semibold text-gray-500 uppercase tracking-widest">
+                      {auth?.role === 'admin' ? 'Received Solutions' : 'Submit Solution'}
+                    </span>
+                  </div>
+                </div>
 
             {auth?.role === 'admin' ? (
               <div className="space-y-4">
@@ -322,88 +325,95 @@ export default function CandidateDetailsPage({ params }) {
                 </div>
               </div>
             ) : (
-              <form onSubmit={async (e) => {
-                e.preventDefault();
-                setSubmitting(true);
-                setMessage({ type: '', text: '' });
-                try {
-                  await updateCandidateAssessment(id, assessmentData);
-                  setMessage({ type: 'success', text: 'Assessment documents submitted successfully!' });
-                } catch (err) {
-                  setMessage({ type: 'error', text: err.message });
-                } finally {
-                  setSubmitting(false);
-                }
-              }} className="space-y-6">
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">GitHub Link</label>
-                    <input 
-                      type="url"
-                      placeholder="https://github.com/username/repo"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
-                      value={assessmentData.assessmentGithub}
-                      onChange={(e) => setAssessmentData({...assessmentData, assessmentGithub: e.target.value})}
-                    />
+              <>
+                <AssessmentClosedBanner />
+                {/*
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setSubmitting(true);
+                  setMessage({ type: '', text: '' });
+                  try {
+                    await updateCandidateAssessment(id, assessmentData);
+                    setMessage({ type: 'success', text: 'Assessment documents submitted successfully!' });
+                  } catch (err) {
+                    setMessage({ type: 'error', text: err.message });
+                  } finally {
+                    setSubmitting(false);
+                  }
+                }} className="space-y-6">
+                  <div className="grid grid-cols-1 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">GitHub Link</label>
+                      <input 
+                        type="url"
+                        placeholder="https://github.com/username/repo"
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                        value={assessmentData.assessmentGithub}
+                        onChange={(e) => setAssessmentData({...assessmentData, assessmentGithub: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Live Preview Link</label>
+                      <input 
+                        type="url"
+                        placeholder="https://your-live-site.com"
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                        value={assessmentData.assessmentLiveLink}
+                        onChange={(e) => setAssessmentData({...assessmentData, assessmentLiveLink: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Document Link 1 (Drive/PDF)</label>
+                      <input 
+                        type="url"
+                        placeholder="https://drive.google.com/..."
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                        value={assessmentData.assessmentDoc1}
+                        onChange={(e) => setAssessmentData({...assessmentData, assessmentDoc1: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Document Link 2 (Drive/PDF)</label>
+                      <input 
+                        type="url"
+                        placeholder="https://drive.google.com/..."
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
+                        value={assessmentData.assessmentDoc2}
+                        onChange={(e) => setAssessmentData({...assessmentData, assessmentDoc2: e.target.value})}
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Live Preview Link</label>
-                    <input 
-                      type="url"
-                      placeholder="https://your-live-site.com"
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
-                      value={assessmentData.assessmentLiveLink}
-                      onChange={(e) => setAssessmentData({...assessmentData, assessmentLiveLink: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Document Link 1 (Drive/PDF)</label>
-                    <input 
-                      type="url"
-                      placeholder="https://drive.google.com/..."
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
-                      value={assessmentData.assessmentDoc1}
-                      onChange={(e) => setAssessmentData({...assessmentData, assessmentDoc1: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Document Link 2 (Drive/PDF)</label>
-                    <input 
-                      type="url"
-                      placeholder="https://drive.google.com/..."
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900"
-                      value={assessmentData.assessmentDoc2}
-                      onChange={(e) => setAssessmentData({...assessmentData, assessmentDoc2: e.target.value})}
-                    />
-                  </div>
-                </div>
 
-                {message.text && (
-                  <div className={`p-4 rounded-lg flex items-center space-x-3 ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                    {message.type === 'success' ? (
-                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                    ) : (
-                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                    )}
-                    <span className="text-sm font-medium">{message.text}</span>
-                  </div>
-                )}
+                  {message.text && (
+                    <div className={`p-4 rounded-lg flex items-center space-x-3 ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                      {message.type === 'success' ? (
+                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                      ) : (
+                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                      )}
+                      <span className="text-sm font-medium">{message.text}</span>
+                    </div>
+                  )}
 
-                <div className="flex justify-end">
-                  <button 
-                    type="submit"
-                    disabled={submitting}
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    {submitting ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2"></div>
-                        Submitting...
-                      </>
-                    ) : 'Submit Assessment'}
-                  </button>
-                </div>
-              </form>
+                  <div className="flex justify-end">
+                    <button 
+                      type="submit"
+                      disabled={submitting}
+                      className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      {submitting ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2"></div>
+                          Submitting...
+                        </>
+                      ) : 'Submit Assessment'}
+                    </button>
+                  </div>
+                </form>
+                */}
+              </>
+            )}
+            </>
             )}
           </div>
         </div>
