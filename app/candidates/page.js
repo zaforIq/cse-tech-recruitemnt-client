@@ -10,6 +10,7 @@ export default function CandidatesPage() {
   const [loading, setLoading] = useState(true);
   const [filterName, setFilterName] = useState('');
   const [filterAppliesFor, setFilterAppliesFor] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
   const [selectedSkills, setSelectedSkills] = useState([]); // Array of selected skills
   const [availableSkills, setAvailableSkills] = useState([]); // All unique skills
   const [showSkillsDropdown, setShowSkillsDropdown] = useState(false); // Toggle for skills dropdown
@@ -67,7 +68,16 @@ export default function CandidatesPage() {
       ? true
       : selectedSkills.some(selected => candidateSkills.includes(selected.toLowerCase()));
 
-    return matchesName && matchesAppliesFor && matchesSkill;
+    let matchesStatus = true;
+    if (filterStatus === 'Not Assigned') {
+      matchesStatus = !candidate.assessmentQuestionUrl;
+    } else if (filterStatus === 'Assigned') {
+      matchesStatus = !!candidate.assessmentQuestionUrl;
+    } else if (filterStatus === 'Submitted') {
+      matchesStatus = !!(candidate.assessmentGithub || candidate.assessmentLiveLink || candidate.assessmentDoc1 || candidate.assessmentDoc2 || candidate.assessmentSubmittedAt);
+    }
+
+    return matchesName && matchesAppliesFor && matchesSkill && matchesStatus;
   });
 
   return (
@@ -95,7 +105,7 @@ export default function CandidatesPage() {
 
         {/* Filters Section */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8 z-10 relative">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Search by Name</label>
                     <div className="relative rounded-md shadow-sm">
@@ -163,6 +173,20 @@ export default function CandidatesPage() {
                         </div>
                     )}
                 </div>
+
+                <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Filter by Status</label>
+                    <select
+                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-lg p-2.5 border bg-white text-gray-900"
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                    >
+                        <option value="">All Statuses</option>
+                        <option value="Not Assigned">Not Assigned</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="Submitted">Submitted</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -173,7 +197,7 @@ export default function CandidatesPage() {
             </h2>
             {candidates.length !== filteredCandidates.length && (
                 <button
-                    onClick={() => { setFilterName(''); setFilterAppliesFor(''); setSelectedSkills([]); }}
+                    onClick={() => { setFilterName(''); setFilterAppliesFor(''); setSelectedSkills([]); setFilterStatus(''); }}
                     className="text-sm text-indigo-600 hover:text-indigo-800 font-medium hover:underline"
                 >
                     Clear all filters
